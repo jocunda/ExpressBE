@@ -1,6 +1,5 @@
 const { Router } = require("express");
 const jwt = require("jsonwebtoken");
-const dayjs = require("dayjs");
 
 const router = Router();
 const db = require("../database/database");
@@ -35,13 +34,12 @@ router.post("/login", async (request, response) => {
     );
 
     userDB[0].password = undefined;
-
+    //save token
     request.session.token = jwtToken;
+
     response.json({
       message: "Welcome Back!",
       user: userDB[0].username,
-      // token: jwtToken,
-      // expiration: "",
     });
   } catch (err) {
     console.log("Error: ", err);
@@ -50,34 +48,98 @@ router.post("/login", async (request, response) => {
 });
 
 router.post("/register", async (request, response) => {
-  const { username, password } = request.body;
+  const { username, password, email } = request.body;
 
-  if (!username || !password) {
+  if (!username || !password || !email) {
     return response
       .status(400)
-      .json({ message: "Username and password are required!" });
+      .json({ message: "Username, email and password are required!" });
   }
 
   try {
     const [rows] = await db
       .promise()
-      .query(`SELECT * FROM USERS WHERE username = ?`, [username]);
+      .query(`SELECT * FROM USERS WHERE username = ? OR email=?`, [
+        username,
+        email,
+      ]);
 
     if (rows.length > 0) {
-      return response.status(400).json({ message: "Username already exists!" });
+      const existingUser = rows.find(
+        (row) => row.username === username || row.email === email
+      );
+      if (existingUser.username === username) {
+        return response
+          .status(400)
+          .json({ message: "Username already exists!" });
+      }
+      if (existingUser.email === email) {
+        return response.status(400).json({ message: "Email already exists!" });
+      }
     }
 
     await db
       .promise()
-      .query(`INSERT INTO USERS (username, password) VALUES (?, ?)`, [
+      .query(`INSERT INTO USERS (username, password, email) VALUES (?, ?, ?)`, [
         username,
         password,
+        email,
       ]);
-
-    response.status(201).json({ message: "Created User" });
+    response.json({ message: "Created User" });
   } catch (err) {
     console.log(err);
     response.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.post("/changePassword", async (request, response) => {
+  const token = request.session.token;
+  if (!token) return response.sendStatus(401);
+
+  const { oldPassword, newPassword, confirmNewPassword, username } =
+    request.body;
+  if (!oldPassword || !newPassword || !confirmNewPassword) {
+    return response
+      .status(400)
+      .json({ message: "Current password and new password are required!" });
+  }
+
+  if (oldPassword == newPassword) {
+    return response.status(400).json({
+      message: "New password cannot be the same as current password.",
+    });
+  }
+
+  if (newPassword !== confirmNewPassword) {
+    return response.status(400).json({ message: "New passwords do not match" });
+  }
+
+  try {
+    const [rows] = await db
+      .promise()
+      .query(`SELECT password FROM users WHERE username = ?`, [username]);
+
+    if (rows.length === 0) {
+      return response.status(404).json({ message: "User not found" });
+    }
+
+    const savedPassword = rows[0].password;
+
+    // Compare the oldPassword with the savedPassword in the database
+    if (oldPassword !== savedPassword) {
+      return response.status(400).json({ message: "Invalid old password" });
+    }
+
+    await db
+      .promise()
+      .query(`UPDATE users SET password = ? WHERE username = ?`, [
+        newPassword,
+        username,
+      ]);
+    response.json({ message: "Password changed successfully" });
+  } catch (err) {
+    console.log(err);
+    response.status(500).json({ message: "Failed to change password" });
   }
 });
 
