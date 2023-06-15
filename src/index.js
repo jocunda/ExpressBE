@@ -26,12 +26,13 @@ app.use(function (req, res, next) {
 
 //send data type to server
 const oneDay = 24 * 60 * 60 * 1000;
-const maxAge = 7 * oneDay;
+const maxAge = 2 * oneDay;
 
 app.use(express.json());
 app.use(express.urlencoded());
 app.use(
   session({
+    name: "connect",
     secret:
       "40052b8c1de87b7bd00f1f124a75fa14c78245a2b267c708488eabcc43f0075a249a8afd256a91572d694c9f20b440b3315fdf1ae096d4c88bcbfe8c6f6852c5",
     resave: false,

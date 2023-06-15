@@ -143,6 +143,19 @@ router.post("/changePassword", async (request, response) => {
   }
 });
 
+router.delete("/logout", async (request, response) => {
+  response.clearCookie("connect");
+  if (request.session) {
+    request.session.destroy((error) => {
+      if (error) {
+        res.status(400).send("Error to log out");
+      } else {
+        response.json({ message: "Good Bye!" });
+      }
+    });
+  }
+});
+
 router.get("/username", async (request, response) => {
   console.log("Inside user check middleware");
   const token = request.session.token;
