@@ -34,8 +34,9 @@ router.post("/login", async (request, response) => {
     );
 
     userDB[0].password = undefined;
-    //save token
+    //save token and username
     request.session.token = jwtToken;
+    request.session.user = userDB[0].username;
 
     response.json({
       message: "Welcome Back!",
@@ -158,13 +159,20 @@ router.delete("/logout", async (request, response) => {
 
 router.get("/username", async (request, response) => {
   console.log("Inside user check middleware");
+  const username = request.session.user;
   const token = request.session.token;
 
   if (!token) return response.sendStatus(401);
 
-  const results = await db.promise().query(`SELECT * FROM USERS`);
-  console.log(results[0]);
-  response.status(200).send(results[0]);
+  try {
+    const [userDB] = await db
+      .promise()
+      .query("SELECT * FROM users WHERE username = ?", [username]);
+    response.status(200).send(userDB[0]);
+  } catch (err) {
+    console.log(err);
+    response.status(500).json({ message: "Internal Server Error" });
+  }
 });
 
 module.exports = router;
