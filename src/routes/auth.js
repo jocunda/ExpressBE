@@ -167,8 +167,14 @@ router.get("/username", async (request, response) => {
   try {
     const [userDB] = await db
       .promise()
-      .query("SELECT * FROM users WHERE username = ?", [username]);
-    response.status(200).send(userDB[0]);
+      .query("SELECT username, email FROM users WHERE username = ?", [
+        username,
+      ]);
+    const user = {
+      username: userDB[0].username,
+      email: userDB[0].email,
+    };
+    response.status(200).send(user);
   } catch (err) {
     console.log(err);
     response.status(500).json({ message: "Internal Server Error" });
