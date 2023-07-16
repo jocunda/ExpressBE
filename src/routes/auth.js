@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 
 const router = Router();
 const db = require("../database/database");
+const { hashPassword, comparePassword } = require("../utils/saltHelper");
 
 router.post("/login", async (request, response) => {
   const { username, password } = request.body;
@@ -23,7 +24,8 @@ router.post("/login", async (request, response) => {
         .status(400)
         .json({ message: "Email or password does not match!" });
 
-    if (userDB[0].password !== password)
+    const passValid = comparePassword(password, userDB[0].password);
+    if (!passValid)
       return response
         .status(400)
         .json({ message: "Email or password does not match!" });
@@ -78,12 +80,13 @@ router.post("/register", async (request, response) => {
         return response.status(400).json({ message: "Email already exists!" });
       }
     }
-
+    const hashedPassword = hashPassword(password);
+    console.log(hashedPassword);
     await db
       .promise()
       .query(`INSERT INTO USERS (username, password, email) VALUES (?, ?, ?)`, [
         username,
-        password,
+        hashedPassword,
         email,
       ]);
     response.json({ message: "Created User" });

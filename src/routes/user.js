@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 
 const router = Router();
 const db = require("../database/database");
+const { hashPassword } = require("../utils/saltHelper");
 
 //auth route
 router.use((request, response, next) => {
