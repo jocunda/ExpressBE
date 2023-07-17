@@ -1,7 +1,7 @@
-const { Router } = require("express");
+const express = require("express");
 const jwt = require("jsonwebtoken");
 
-const router = Router();
+const router = express.Router();
 const db = require("../database/database");
 const { hashPassword, comparePassword } = require("../utils/saltHelper");
 

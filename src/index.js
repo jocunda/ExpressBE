@@ -1,21 +1,14 @@
-for (const key in require.cache) {
-  if (key.startsWith(__dirname)) {
-    delete require.cache[key];
-  }
-}
-
 const express = require("express");
 const session = require("express-session");
 require("dotenv").config();
 
 const app = express();
 const PORT = 4001;
+const router = express.Router();
 
 //routes
-const groceriesRoute = require("./routes/groceries.router");
-const authRoute = require("./routes/auth.router");
-const itemsRoute = require("./routes/items.router");
-const userRoute = require("./routes/user.router");
+const authRoute = require("./routes/auth");
+const itemsRoute = require("./routes/items");
 
 app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Credentials", true);
@@ -55,9 +48,7 @@ app.use((request, response, next) => {
   next();
 });
 
-app.use("/api/groceries", groceriesRoute);
 app.use("/api/auth", authRoute);
 app.use("/api/items", itemsRoute);
-app.use("/api/user", userRoute);
 
 app.listen(PORT, () => console.log(`Running Express Server on Port ${PORT}!`));
