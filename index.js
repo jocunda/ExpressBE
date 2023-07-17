@@ -3,7 +3,7 @@ const session = require("express-session");
 require("dotenv").config();
 
 const app = express();
-const PORT = 4001;
+const PORT = 3306;
 
 //routes
 const groceriesRoute = require("./routes/groceries");
