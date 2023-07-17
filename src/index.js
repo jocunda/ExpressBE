@@ -12,10 +12,10 @@ const app = express();
 const PORT = 4001;
 
 //routes
-const groceriesRoute = require("./routes/groceries");
-const authRoute = require("./routes/auth");
-const itemsRoute = require("./routes/items");
-const userRoute = require("./routes/user");
+const groceriesRoute = require("./routes/groceries.router");
+const authRoute = require("./routes/auth.router");
+const itemsRoute = require("./routes/items.router");
+const userRoute = require("./routes/user.router");
 
 app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Credentials", true);
