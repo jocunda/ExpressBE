@@ -6,10 +6,10 @@ const app = express();
 const PORT = 3306;
 
 //routes
-const groceriesRoute = require("./routes/groceries");
+// const groceriesRoute = require("./routes/groceries");
 const authRoute = require("./routes/auth");
 const itemsRoute = require("./routes/items");
-const userRoute = require("./routes/user");
+// const userRoute = require("./routes/user");
 
 app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Credentials", true);
@@ -49,9 +49,9 @@ app.use((request, response, next) => {
   next();
 });
 
-app.use("/api/groceries", groceriesRoute);
+// app.use("/api/groceries", groceriesRoute);
 app.use("/api/auth", authRoute);
 app.use("/api/items", itemsRoute);
-app.use("/api/user", userRoute);
+// app.use("/api/user", userRoute);
 
 app.listen(PORT, () => console.log(`Running Express Server on Port ${PORT}!`));
