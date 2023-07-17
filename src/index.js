@@ -1,3 +1,9 @@
+for (const key in require.cache) {
+  if (key.startsWith(__dirname)) {
+    delete require.cache[key];
+  }
+}
+
 const express = require("express");
 const session = require("express-session");
 require("dotenv").config();
