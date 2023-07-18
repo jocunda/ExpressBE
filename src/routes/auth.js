@@ -15,9 +15,9 @@ router.post("/login", async (request, response) => {
   }
 
   try {
-    const [userDB] = await db
-      .promise()
-      .query("SELECT * FROM users WHERE username = ?", [username]);
+    const [userDB] = await db.query("SELECT * FROM users WHERE username = ?", [
+      username,
+    ]);
 
     if (!userDB.length)
       return response
@@ -60,12 +60,10 @@ router.post("/register", async (request, response) => {
   }
 
   try {
-    const [rows] = await db
-      .promise()
-      .query(`SELECT * FROM USERS WHERE username = ? OR email=?`, [
-        username,
-        email,
-      ]);
+    const [rows] = await db.query(
+      `SELECT * FROM USERS WHERE username = ? OR email=?`,
+      [username, email]
+    );
 
     if (rows.length > 0) {
       const existingUser = rows.find(
@@ -82,13 +80,10 @@ router.post("/register", async (request, response) => {
     }
     const hashedPassword = hashPassword(password);
     console.log(hashedPassword);
-    await db
-      .promise()
-      .query(`INSERT INTO USERS (username, password, email) VALUES (?, ?, ?)`, [
-        username,
-        hashedPassword,
-        email,
-      ]);
+    await db.query(
+      `INSERT INTO USERS (username, password, email) VALUES (?, ?, ?)`,
+      [username, hashedPassword, email]
+    );
     response.json({ message: "Created User" });
   } catch (err) {
     console.log(err);
@@ -119,9 +114,10 @@ router.post("/changePassword", async (request, response) => {
   }
 
   try {
-    const [rows] = await db
-      .promise()
-      .query(`SELECT password FROM users WHERE username = ?`, [username]);
+    const [rows] = await db.query(
+      `SELECT password FROM users WHERE username = ?`,
+      [username]
+    );
 
     if (rows.length === 0) {
       return response.status(404).json({ message: "User not found" });
@@ -134,12 +130,10 @@ router.post("/changePassword", async (request, response) => {
       return response.status(400).json({ message: "Invalid old password" });
     }
 
-    await db
-      .promise()
-      .query(`UPDATE users SET password = ? WHERE username = ?`, [
-        newPassword,
-        username,
-      ]);
+    await db.query(`UPDATE users SET password = ? WHERE username = ?`, [
+      newPassword,
+      username,
+    ]);
     response.json({ message: "Password changed successfully" });
   } catch (err) {
     console.log(err);
@@ -168,11 +162,10 @@ router.get("/username", async (request, response) => {
   if (!token) return response.sendStatus(401);
 
   try {
-    const [userDB] = await db
-      .promise()
-      .query("SELECT username, email FROM users WHERE username = ?", [
-        username,
-      ]);
+    const [userDB] = await db.query(
+      "SELECT username, email FROM users WHERE username = ?",
+      [username]
+    );
     const user = {
       username: userDB[0].username,
       email: userDB[0].email,
