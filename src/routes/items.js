@@ -27,7 +27,7 @@ router.get("/itemlist", async (request, response) => {
   if (!token) return response.sendStatus(401);
 
   try {
-    const results = await db.promise().query("SELECT * FROM ITEMS");
+    const results = await db.query("SELECT * FROM items");
     response.status(200).send(results[0]);
   } catch (err) {
     console.log(err);
@@ -42,9 +42,7 @@ router.get("/:itemId", async (request, response) => {
   if (!token) return response.sendStatus(401);
 
   try {
-    const [item] = await db
-      .promise()
-      .query(`SELECT * FROM ITEMS WHERE id = ?`, [itemId]);
+    const [item] = await db.query(`SELECT * FROM items WHERE id = ?`, [itemId]);
 
     response.status(200).json(item[0]);
   } catch (err) {
