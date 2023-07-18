@@ -61,7 +61,7 @@ router.post("/register", async (request, response) => {
 
   try {
     const [rows] = await db.query(
-      `SELECT * FROM USERS WHERE username = ? OR email=?`,
+      `SELECT * FROM users WHERE username = ? OR email=?`,
       [username, email]
     );
 
@@ -81,7 +81,7 @@ router.post("/register", async (request, response) => {
     const hashedPassword = hashPassword(password);
     console.log(hashedPassword);
     await db.query(
-      `INSERT INTO USERS (username, password, email) VALUES (?, ?, ?)`,
+      `INSERT INTO users (username, password, email) VALUES (?, ?, ?)`,
       [username, hashedPassword, email]
     );
     response.json({ message: "Created User" });
