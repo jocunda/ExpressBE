@@ -4,7 +4,6 @@ require("dotenv").config();
 
 const app = express();
 const PORT = 4001;
-const router = express.Router();
 
 //routes
 const authRoute = require("./routes/auth.js");
