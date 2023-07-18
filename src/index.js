@@ -7,8 +7,8 @@ const PORT = 4001;
 const router = express.Router();
 
 //routes
-const authRoute = require("./routes/auth");
-const itemsRoute = require("./routes/items");
+const authRoute = require("./routes/auth.js");
+const itemsRoute = require("./routes/items.js");
 
 app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Credentials", true);
