@@ -3,11 +3,12 @@ const session = require("express-session");
 require("dotenv").config();
 
 const app = express();
-const PORT = 3306;
+const PORT = 4001;
 
 //routes
 const authRoute = require("./src/routes/auth");
 const itemsRoute = require("./src/routes/items");
+const inventoriesRoute = require("./src/routes/inventories");
 
 app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Credentials", true);
@@ -49,5 +50,6 @@ app.use((request, response, next) => {
 
 app.use("/api/auth", authRoute);
 app.use("/api/items", itemsRoute);
+app.use("/api/inventories", inventoriesRoute);
 
 app.listen(PORT, () => console.log(`Running Express Server on Port ${PORT}!`));
