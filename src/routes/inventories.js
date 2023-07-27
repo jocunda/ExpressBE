@@ -21,21 +21,26 @@ router.use((request, response, next) => {
   });
 });
 
-router.get("/inventorieslist", async (request, response) => {
+router.get("/inventorieslist/:itemId", async (request, response) => {
   const token = request.session.token;
+  const { itemId } = request.params;
 
   if (!token) return response.sendStatus(401);
 
   try {
-    const results = await db.query(`SELECT 
-inv.id, inv.no, inv.memo, inv.value, inv.photoId,
-item.id, item.value,
-pos.targetId, pos.createdById, emp.name,
-pos.preOwnerId, pos.startDate
-FROM inventories inv 
-LEFT JOIN items item ON inv.itemId=item.id
-LEFT JOIN positions pos ON inv.positionId=pos.id
-LEFT JOIN employees emp ON pos.createdById=emp.id;`);
+    const results = await db.query(
+      `SELECT 
+      inv.id, inv.no, inv.memo, inv.qty, inv.photoId,
+      item.id AS itemId, item.value AS itemValue,
+      pos.targetId AS positionTargetId, pos.createdById AS positionCreatedById, emp.name AS employeeName,
+      pos.preOwnerId AS positionPreOwnerId, pos.startDate AS positionStartDate
+      FROM expressjs.inventories inv 
+      LEFT JOIN expressjs.items item ON inv.itemId=item.id
+      LEFT JOIN expressjs.positions pos ON inv.positionId=pos.id
+      LEFT JOIN expressjs.employees emp ON pos.createdById=emp.id
+      WHERE itemId = ?`,
+      [itemId]
+    );
     response.status(200).send(results[0]);
   } catch (err) {
     console.log(err);
