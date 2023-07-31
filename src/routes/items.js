@@ -110,4 +110,26 @@ router.post("/addItem", async (request, response) => {
   }
 });
 
+router.delete("/delete/:itemId", async (request, response) => {
+  const token = request.session.token;
+  const { itemId } = request.params;
+
+  if (!token) return response.sendStatus(401);
+
+  try {
+    const [item] = await db.query(`SELECT * FROM items WHERE id = ?`, [itemId]);
+
+    if (item.length === 0) {
+      // If the item doesn't exist, return a 404 Not Found status.
+      return response.status(404).json({ message: "Item not found" });
+    }
+
+    await db.query(`DELETE FROM items WHERE id = ?`, [itemId]);
+    response.json({ message: "Item deleted successfully" });
+  } catch (err) {
+    console.log(err);
+    response.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
 module.exports = router;
