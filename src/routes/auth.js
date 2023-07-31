@@ -79,7 +79,7 @@ router.post("/register", async (request, response) => {
       }
     }
     const hashedPassword = hashPassword(password);
-    console.log(hashedPassword);
+
     await db.query(
       `INSERT INTO users (username, password, email) VALUES (?, ?, ?)`,
       [username, hashedPassword, email]
