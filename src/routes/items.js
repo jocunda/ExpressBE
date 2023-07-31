@@ -64,14 +64,25 @@ router.post("/addItem", async (request, response) => {
   }
 
   try {
-    const [rows] = await db.query(`SELECT id FROM items WHERE value = ?`, [
-      value,
-    ]);
+    const [rows] = await db.query(
+      `SELECT * FROM items WHERE value = ? OR code = ?`,
+      [value, code]
+    );
 
     if (rows.length > 0) {
-      return response
-        .status(409)
-        .json({ message: "Item with the same value already exists!" });
+      const existingItem = rows.find(
+        (row) => row.value === value || row.code === code
+      );
+      if (existingItem.value === value) {
+        return response
+          .status(409)
+          .json({ message: "Item with the same value already exists!" });
+      }
+      if (existingItem.code === code) {
+        return response
+          .status(409)
+          .json({ message: "Item with the same code already exists!" });
+      }
     }
 
     let itemId;
