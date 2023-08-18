@@ -1,5 +1,6 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
+const { v4: uuidv4 } = require("uuid");
 
 const router = express.Router();
 const db = require("../database/database");
@@ -63,5 +64,70 @@ router.get("/inventorieslist/:itemId", async (request, response) => {
 //     response.status(500).json({ message: "Internal Server Error" });
 //   }
 // });
+
+router.post("/addInventory", async (request, response) => {
+  const token = request.session.token;
+  if (!token) return response.sendStatus(401);
+
+  const { code, quantity, memo, itemId } = request.body;
+  if (!code || !quantity || !itemId) {
+    return response
+      .status(400)
+      .json({ message: "Code, quantity and itemId of Inventory is required!" });
+  }
+
+  try {
+    const [rows] = await db.query(`SELECT * FROM inventories WHERE no = ?`, [
+      code,
+    ]);
+
+    if (rows.length > 0) {
+      return response
+        .status(409)
+        .json({ message: "Inventory with the same code already exists!" });
+    }
+
+    let inventoryId;
+    do {
+      inventoryId = uuidv4();
+      try {
+        await db.query(
+          `INSERT INTO inventories (id, no, qty, memo, itemId) VALUES (?, ?, ?, ?, ?)`,
+          [inventoryId, code, quantity, memo, itemId]
+        );
+
+        //to update deleteable inside item
+        await db.query(`
+          UPDATE items as leftItems, 
+          (
+            SELECT a.id,
+              CASE
+                WHEN count(b.id)= 0 THEN true
+                ELSE false
+              END as deleteable 
+            FROM items as a 
+            LEFT JOIN inventories as b 
+            ON a.id = b.itemId
+            GROUP BY a.id
+          ) as rightItems 
+          SET leftItems.deleteable = rightItems.deleteable 
+          WHERE leftItems.id = rightItems.id;
+        `);
+      } catch (err) {
+        // If the insertion results in a duplicate itemId (primary key violation), generate a new itemId
+        if (err.code === "ER_DUP_ENTRY") {
+          inventoryId = null; // Set it to null to loop and try again
+        } else {
+          throw err; // Throw other errors for proper error handling
+        }
+      }
+    } while (!inventoryId);
+
+    response.json({ message: "Inventory added successfully" });
+  } catch (err) {
+    console.log(err);
+    response.status(500).json({ message: "Failed to add inventory" });
+  }
+});
 
 module.exports = router;
