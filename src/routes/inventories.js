@@ -99,7 +99,7 @@ router.post("/addInventory", async (request, response) => {
           WHERE leftItems.id = rightItems.id;
         `);
       } catch (err) {
-        // If the insertion results in a duplicate itemId (primary key violation), generate a new itemId
+        // If the insertion results in a duplicate inventoryId (primary key violation), generate a new itemId
         if (err.code === "ER_DUP_ENTRY") {
           inventoryId = null; // Set it to null to loop and try again
         } else {
@@ -163,51 +163,45 @@ router.put("/edit/:inventoryId", async (request, response) => {
 
   if (!token) return response.sendStatus(401);
 
-  const { value, code, description } = request.body;
-  if (!value || !code) {
+  const { code, quantity, memo } = request.body;
+  if (!code || !quantity) {
     return response
       .status(400)
-      .json({ message: "Name and code of Inventory is required!" });
+      .json({ message: "Code and quantity of Inventory is required!" });
   }
 
   try {
     const [currentItemRows] = await db.query(
-      `SELECT * FROM items WHERE id = ?`,
-      [itemId]
+      `SELECT * FROM inventories WHERE id = ?`,
+      [inventoryId]
     );
 
     if (currentItemRows.length === 0) {
-      return response.status(404).json({ message: "Item not found!" });
+      return response.status(404).json({ message: "Inventory not found!" });
     }
 
-    // Check for existing items with the same value and code but not the same item.
+    // Check for existing inventory with the same value but not the same item.
     const [existingRows] = await db.query(
-      `SELECT * FROM items WHERE (value = ? OR code = ?) AND id <> ?`,
-      [value, code, itemId]
+      `SELECT * FROM inventories WHERE (no = ?) AND id <> ?`,
+      [code, inventoryId]
     );
 
     if (existingRows.length > 0) {
-      const existingItem = existingRows[0];
-      if (existingItem.value === value) {
-        return response
-          .status(409)
-          .json({ message: "Item with the same value already exists!" });
-      }
-      if (existingItem.code === code) {
-        return response
-          .status(409)
-          .json({ message: "Item with the same code already exists!" });
-      }
+      return response
+        .status(409)
+        .json({ message: "Inventory with the same value already exists!" });
     }
 
-    await db.query(
-      `UPDATE items SET value=?, code=?, description=? WHERE id=?`,
-      [value, code, description, itemId]
-    );
-    response.json({ message: "Item updated successfully" });
+    await db.query(`UPDATE inventories SET no=?, qty=?, memo=? WHERE id=?`, [
+      code,
+      quantity,
+      memo,
+      inventoryId,
+    ]);
+    response.json({ message: "Inventory updated successfully" });
   } catch (err) {
     console.log(err);
-    response.status(500).json({ message: "Failed to update item" });
+    response.status(500).json({ message: "Failed to update inventory" });
   }
 });
 

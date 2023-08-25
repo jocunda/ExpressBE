@@ -1,5 +1,6 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
+const { v4: uuidv4 } = require("uuid");
 
 const router = express.Router();
 const db = require("../database/database");
@@ -80,10 +81,24 @@ router.post("/register", async (request, response) => {
     }
     const hashedPassword = hashPassword(password);
 
-    await db.query(
-      `INSERT INTO users (username, password, email) VALUES (?, ?, ?)`,
-      [username, hashedPassword, email]
-    );
+    let userId;
+    do {
+      userId = uuidv4();
+      try {
+        await db.query(
+          `INSERT INTO users (username, password, email, id) VALUES (?, ?, ?, ?)`,
+          [username, hashedPassword, email, userId]
+        );
+      } catch (err) {
+        // If the insertion results in a duplicate userId (primary key violation), generate a new userId
+        if (err.code === "ER_DUP_ENTRY") {
+          userId = null; // Set it to null to loop and try again
+        } else {
+          throw err; // Throw other errors for proper error handling
+        }
+      }
+    } while (!userId);
+
     response.json({ message: "Created User" });
   } catch (err) {
     console.log(err);
@@ -175,6 +190,7 @@ router.get("/username", async (request, response) => {
     console.log(err);
     response.status(500).json({ message: "Internal Server Error" });
   }
+  //leftjoin table employee
 });
 
 module.exports = router;
